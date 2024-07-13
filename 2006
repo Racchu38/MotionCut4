@@ -118,3 +118,99 @@ h1 {
 .task-buttons .delete-button:hover {
     background-color: #c82333;
 }
+document.addEventListener('DOMContentLoaded', () => {
+    const taskInput = document.getElementById('task-input');
+    const addTaskButton = document.getElementById('add-task-button');
+    const taskList = document.getElementById('task-list');
+
+    addTaskButton.addEventListener('click', addTask);
+
+    // Load tasks from local storage
+    loadTasks();
+
+    function addTask() {
+        const taskText = taskInput.value.trim();
+        if (taskText) {
+            const taskItem = createTaskItem(taskText);
+            taskList.appendChild(taskItem);
+            saveTasks();
+            taskInput.value = '';
+        }
+    }
+
+    function createTaskItem(text) {
+        const taskItem = document.createElement('li');
+        taskItem.className = 'task-item';
+
+        const taskText = document.createElement('span');
+        taskText.className = 'task-text';
+        taskText.textContent = text;
+        taskItem.appendChild(taskText);
+
+        const taskButtons = document.createElement('div');
+        taskButtons.className = 'task-buttons';
+
+        const editButton = document.createElement('button');
+        editButton.className = 'edit-button';
+        editButton.textContent = 'Edit';
+        editButton.addEventListener('click', () => editTask(taskItem, taskText));
+        taskButtons.appendChild(editButton);
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'delete-button';
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', () => deleteTask(taskItem));
+        taskButtons.appendChild(deleteButton);
+
+        const toggleButton = document.createElement('button');
+        toggleButton.className = 'toggle-button';
+        toggleButton.textContent = 'Complete';
+        toggleButton.addEventListener('click', () => toggleTask(taskItem, taskText));
+        taskButtons.appendChild(toggleButton);
+
+        taskItem.appendChild(taskButtons);
+
+        return taskItem;
+    }
+
+    function editTask(taskItem, taskText) {
+        const newText = prompt('Edit task:', taskText.textContent);
+        if (newText) {
+            taskText.textContent = newText;
+            saveTasks();
+        }
+    }
+
+    function deleteTask(taskItem) {
+        taskItem.remove();
+        saveTasks();
+    }
+
+    function toggleTask(taskItem, taskText) {
+        taskItem.classList.toggle('completed');
+        saveTasks();
+    }
+
+    function saveTasks() {
+        const tasks = [];
+        document.querySelectorAll('.task-item').forEach(taskItem => {
+            tasks.push({
+                text: taskItem.querySelector('.task-text').textContent,
+                completed: taskItem.classList.contains('completed')
+            });
+        });
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    function loadTasks() {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        tasks.forEach(task => {
+            const taskItem = createTaskItem(task.text);
+            if (task.completed) {
+                taskItem.classList.add('completed');
+            }
+            taskList.appendChild(taskItem);
+        });
+    }
+});
+
